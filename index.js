@@ -1,10 +1,18 @@
 import express from "express";
 import fetch from "node-fetch";
 import dotenv from "dotenv";
+import cors from "cors";
 
 dotenv.config();
 
 const app = express();
+app.use(
+  cors({
+    origin: "https://plankton-app-7zgcm.ondigitalocean.app",
+    methods: "GET",
+    credentials: true,
+  })
+);
 const PORT = process.env.PORT || 3001;
 
 const MONDAY_API_ENDPOINT = "https://api.monday.com/v2/";
