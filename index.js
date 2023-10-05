@@ -30,6 +30,7 @@ app.get("/api/monday-data", async (req, res) => {
           type
         }
         items (limit: 100) {
+          id
           name
           column_values {
             text
@@ -65,20 +66,29 @@ app.get("/api/monday-data", async (req, res) => {
 
 app.post("/api/update-contacted", async (req, res) => {
   const { itemId } = req.body;
+  const boardId = 4803932474;
+  const columnId = "status_1"; // Assuming this is a status column
 
-  // Assuming "Contacted?" column has an ID of "text_column"
-  // (You'll need to get the exact ID of the column from your board)
-  const columnId = "status_1";
+  const columnValues = {
+    [columnId]: {
+      label: "YES",
+    },
+  };
 
-  const value = JSON.stringify({ text: "YES" });
-
-  const mutation = `
-    mutation {
-      change_column_value (board_id: 4803932474, item_id: ${itemId}, column_id: "${columnId}", value: ${value}) {
-        id
+  const body = {
+    query: `
+      mutation ($myBoardId: Int!, $myItemId: Int!, $myColumnValues: JSON!) {
+        change_multiple_column_values(item_id: $myItemId, board_id: $myBoardId, column_values: $myColumnValues) {
+          id
+        }
       }
-    }
-  `;
+    `,
+    variables: {
+      myBoardId: boardId,
+      myItemId: itemId,
+      myColumnValues: JSON.stringify(columnValues),
+    },
+  };
 
   let headers = {
     "Content-Type": "application/json",
@@ -92,11 +102,17 @@ app.post("/api/update-contacted", async (req, res) => {
     const response = await fetch(MONDAY_API_ENDPOINT, {
       method: "POST",
       headers: headers,
-      body: JSON.stringify({ query: mutation }),
+      body: JSON.stringify(body),
     });
 
     const responseBody = await response.json();
-    res.json(responseBody.data.change_column_value);
+
+    if (responseBody.errors) {
+      console.error("Response from Monday.com:", responseBody);
+      return res.status(500).send("Internal Server Error");
+    }
+
+    res.json(responseBody.data.change_multiple_column_values);
   } catch (error) {
     console.error("Error updating item on Monday.com:", error);
     res.status(500).send("Internal Server Error");
