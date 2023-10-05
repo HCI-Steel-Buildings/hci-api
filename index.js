@@ -6,10 +6,12 @@ import cors from "cors";
 dotenv.config();
 
 const app = express();
+app.use(express.json()); // Adding this to parse incoming JSON bodies for POST requests
+
 app.use(
   cors({
     origin: "https://plankton-app-7zgcm.ondigitalocean.app",
-    methods: "GET",
+    methods: ["GET", "POST"], // Modified to allow both GET and POST
     credentials: true,
   })
 );
@@ -27,7 +29,7 @@ app.get("/api/monday-data", async (req, res) => {
           title
           type
         }
-        items (limit: 200) {
+        items (limit: 100) {
           name
           column_values {
             text
@@ -57,6 +59,46 @@ app.get("/api/monday-data", async (req, res) => {
     res.json(responseBody.data.boards[0]);
   } catch (error) {
     console.error("Error fetching data from Monday.com:", error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+app.post("/api/update-contacted", async (req, res) => {
+  const { itemId } = req.body;
+
+  // Assuming "Contacted?" column has an ID of "text_column"
+  // (You'll need to get the exact ID of the column from your board)
+  const columnId = "status_1";
+
+  const value = JSON.stringify({ text: "YES" });
+
+  const mutation = `
+    mutation {
+      change_column_value (board_id: 4803932474, item_id: ${itemId}, column_id: "${columnId}", value: ${value}) {
+        id
+      }
+    }
+  `;
+
+  let headers = {
+    "Content-Type": "application/json",
+  };
+
+  if (AUTH_TOKEN) {
+    headers.Authorization = AUTH_TOKEN;
+  }
+
+  try {
+    const response = await fetch(MONDAY_API_ENDPOINT, {
+      method: "POST",
+      headers: headers,
+      body: JSON.stringify({ query: mutation }),
+    });
+
+    const responseBody = await response.json();
+    res.json(responseBody.data.change_column_value);
+  } catch (error) {
+    console.error("Error updating item on Monday.com:", error);
     res.status(500).send("Internal Server Error");
   }
 });
