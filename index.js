@@ -64,39 +64,33 @@ app.get("/api/monday-data", async (req, res) => {
   }
 });
 
-app.post("/api/update-contacted", async (req, res) => {
-  const { itemId } = req.body;
+app.post("/api/update-contact-status", async (req, res) => {
+  const itemId = parseInt(req.body.itemId, 10);
   const boardId = 4803932474;
-  const columnId = "status_1"; // Assuming this is a status column
+  const columnId = "status_1"; // Use the actual column ID for "Contacted?"
 
-  const columnValues = {
-    [columnId]: {
-      label: "YES",
-    },
-  };
+  const columnValue = JSON.stringify({ label: "YES" });
 
   const body = {
     query: `
-      mutation ($myBoardId: Int!, $myItemId: Int!, $myColumnValues: JSON!) {
-        change_multiple_column_values(item_id: $myItemId, board_id: $myBoardId, column_values: $myColumnValues) {
+      mutation UpdateContactStatus($myItemId: Int!, $myBoardId: Int!, $myColumnId: String!, $myColumnValue: JSON!) {
+        change_column_value(item_id: $myItemId, board_id: $myBoardId, column_id: $myColumnId, value: $myColumnValue) {
           id
         }
       }
-    `,
+      `,
     variables: {
       myBoardId: boardId,
       myItemId: itemId,
-      myColumnValues: JSON.stringify(columnValues),
+      myColumnId: columnId,
+      myColumnValue: columnValue,
     },
   };
 
   let headers = {
     "Content-Type": "application/json",
+    Authorization: AUTH_TOKEN,
   };
-
-  if (AUTH_TOKEN) {
-    headers.Authorization = AUTH_TOKEN;
-  }
 
   try {
     const response = await fetch(MONDAY_API_ENDPOINT, {
@@ -112,9 +106,9 @@ app.post("/api/update-contacted", async (req, res) => {
       return res.status(500).send("Internal Server Error");
     }
 
-    res.json(responseBody.data.change_multiple_column_values);
+    res.json(responseBody.data.change_column_value);
   } catch (error) {
-    console.error("Error updating item on Monday.com:", error);
+    console.error("Error updating Contacted? status on Monday.com:", error);
     res.status(500).send("Internal Server Error");
   }
 });
