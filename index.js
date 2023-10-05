@@ -6,12 +6,12 @@ import cors from "cors";
 dotenv.config();
 
 const app = express();
-app.use(express.json()); // Adding this to parse incoming JSON bodies for POST requests
+app.use(express.json());
 
 app.use(
   cors({
-    origin: "https://plankton-app-7zgcm.ondigitalocean.app",
-    methods: ["GET", "POST"], // Modified to allow both GET and POST
+    origin: "*",
+    methods: ["GET", "POST"],
     credentials: true,
   })
 );
