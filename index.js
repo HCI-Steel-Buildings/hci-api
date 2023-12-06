@@ -66,7 +66,7 @@ app.get("/api/monday-data", async (req, res) => {
 app.get("/api/purchasing", async (req, res) => {
   const query = `
     query {
-      boards(ids: 5165866718 ) {
+      boards(ids: 5640828023 ) {
         name
         columns {
           title
