@@ -63,10 +63,10 @@ app.get("/api/monday-data", async (req, res) => {
     res.status(500).send("Internal Server Error");
   }
 });
-app.get("/api/it-data", async (req, res) => {
+app.get("/api/purchasing", async (req, res) => {
   const query = `
     query {
-      boards(ids: 5353369660) {
+      boards(ids: 5165866718 ) {
         name
         columns {
           title
@@ -86,7 +86,7 @@ app.get("/api/it-data", async (req, res) => {
 
   let headers = {
     "Content-Type": "application/json",
-    Authorization: AUTH_TOKEN, // Moved the token check to a safer location
+    Authorization: AUTH_TOKEN,
   };
 
   try {
